@@ -1,5 +1,6 @@
 #!/bin/python3
 from tkinter import Tk, Frame, Label, Text, Button, Canvas, END
+from pathlib import Path
 import datetime
 import sqlite3
 
@@ -108,7 +109,8 @@ class App(Frame):
 
 class bdd():
     def __init__(self):
-        self.conn = sqlite3.connect("$HOME/.cache/jdc.db")
+        home = str(Path.home())
+        self.conn = sqlite3.connect(home + "/.jdc.db")
         self.curr = self.conn.cursor()
         self.curr.execute("""CREATE TABLE IF NOT EXISTS jdc (
                             date TEXT NOT NULL,
