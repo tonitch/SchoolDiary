@@ -108,7 +108,7 @@ class App(Frame):
 
 class bdd():
     def __init__(self):
-        self.conn = sqlite3.connect("jdc.db")
+        self.conn = sqlite3.connect("$HOME/.cache/jdc.db")
         self.curr = self.conn.cursor()
         self.curr.execute("""CREATE TABLE IF NOT EXISTS jdc (
                             date TEXT NOT NULL,
@@ -118,7 +118,7 @@ class bdd():
     def GetData(self, date):
         self.curr.execute("SELECT * FROM jdc WHERE date='{}'".format(date))
         data = self.curr.fetchone()
-        if data == None:
+        if data is None:
             return ["", "", ""]
         return data
 
