@@ -3,6 +3,7 @@ from tkinter import Tk, Frame, Label, Text, Button, Canvas, END
 from pathlib import Path
 import datetime
 import sqlite3
+import psycopg2
 
 DOTW = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]  # Days of the week
 
@@ -110,7 +111,8 @@ class App(Frame):
 class bdd():
     def __init__(self):
         home = str(Path.home())
-        self.conn = sqlite3.connect(home + "/.jdc.db")
+        self.conn = psycopg2.connect(
+            "host=shop.maryphoto.be dbname=tonitch user=tonitch password=bateauxMaBDD!")
         self.curr = self.conn.cursor()
         self.curr.execute("""CREATE TABLE IF NOT EXISTS jdc (
                             date TEXT NOT NULL,
@@ -127,7 +129,7 @@ class bdd():
     def PutData(self, date, devoir, lecon):
         self.deleteData(date)
         self.curr.execute(
-            "INSERT INTO jdc VALUES (?,?,?);",
+            "INSERT INTO jdc VALUES (%s,%s,%s);",
             (str(date), devoir, lecon))
         self.conn.commit()
 
