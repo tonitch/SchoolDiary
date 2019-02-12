@@ -2,8 +2,9 @@
 from tkinter import Tk, Frame, Label, Text, Button, Canvas, END
 from pathlib import Path
 import datetime
-import sqlite3
+import configparser
 import psycopg2
+import sqlite3
 
 DOTW = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"]  # Days of the week
 
@@ -109,10 +110,13 @@ class App(Frame):
 
 
 class bdd():
-    def __init__(self):
-        home = str(Path.home())
-        self.conn = psycopg2.connect(
-            "host=shop.maryphoto.be dbname=tonitch user=tonitch password=bateauxMaBDD!")
+    def __init__(self, config):
+        if config is None:
+            home = str(Path.home())
+            self.conn = sqlite3.connect(home + "/.jdc.db")
+        else:
+            host, user, password, dbname = config
+            self.conn = psycopg2.connect(host=host, user=user, password=password, dbname=dbname)
         self.curr = self.conn.cursor()
         self.curr.execute("""CREATE TABLE IF NOT EXISTS jdc (
                             date TEXT NOT NULL,
@@ -129,7 +133,7 @@ class bdd():
     def PutData(self, date, devoir, lecon):
         self.deleteData(date)
         self.curr.execute(
-            "INSERT INTO jdc VALUES (%s,%s,%s);",
+            "INSERT INTO jdc VALUES (%s, %s, %s);",
             (str(date), devoir, lecon))
         self.conn.commit()
 
@@ -138,9 +142,49 @@ class bdd():
         self.conn.commit()
 
 
+class Config():
+    def __init__(self):
+        self.value = self.CheckConfig()
+
+    def CheckConfig(self):
+        try:
+            self.configFile = open("bdd.cfg", "r")
+        except FileNotFoundError:
+            self.GenerateConfig()
+            self.configFile = open("bdd.cfg", "r")
+        return self.ReadConfig()
+
+    def GenerateConfig(self):
+        print("Config file not found")
+        configFile = open('bdd.cfg', "w")
+        print("generating new config File")
+        config = configparser.RawConfigParser()
+        config.add_section("PGSQL")
+        config.set("PGSQL", "SQLITE", "TRUE")
+        config.set("PGSQL", "HOST", "<Host>")
+        config.set("PGSQL", "USER", "<Username>")
+        config.set("PGSQL", "PASS", "<Password>")
+        config.set("PGSQL", "DB", "<DataBase Name>")
+        config.write(configFile)
+
+    def ReadConfig(self):
+        config = configparser.RawConfigParser()
+        config.readfp(self.configFile)
+        print(config.get("PGSQL", "SQLITE"))
+        if config.get("PGSQL", "SQLITE").lower() == "true":
+            return None
+        elif config.get("PGSQL", "SQLITE").lower() == "false":
+            return [
+                config.get("PGSQL", "HOST"),
+                config.get("PGSQL", "USER"),
+                config.get("PGSQL", "PASS"),
+                config.get("PGSQL", "DB")]
+
+
 def main():
+    conf = Config()
     root = Tk()
-    db = bdd()
+    db = bdd(conf.value)
     App(root, db)
 
 
