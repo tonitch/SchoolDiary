@@ -133,8 +133,7 @@ class bdd():
     def PutData(self, date, devoir, lecon):
         self.deleteData(date)
         self.curr.execute(
-            "INSERT INTO jdc VALUES (%s, %s, %s);",
-            (str(date), devoir, lecon))
+            "INSERT INTO jdc VALUES ('{}', '{}', '{}');".format(str(date), devoir, lecon))
         self.conn.commit()
 
     def deleteData(self, date):
